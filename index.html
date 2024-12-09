@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Telegram Document Manager</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+  <h1>Управление документами</h1>
+  <div>
+    <label for="fileInput">Загрузите документ:</label>
+    <input type="file" id="fileInput">
+    <button onclick="uploadDocument()">Загрузить</button>
+  </div>
+  <div id="documentList"></div>
+  <script src="script.js"></script>
+</body>
+</html>
