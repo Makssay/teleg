@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,12 +9,49 @@
 </head>
 <body>
   <h1>Управление документами</h1>
+  
+  <!-- Заголовок от Telegram -->
+  <script>
+    Telegram.WebApp.ready();
+    Telegram.WebApp.MainButton.setText("Готово").show();
+  </script>
+
   <div>
     <label for="fileInput">Загрузите документ:</label>
-    <input type="file" id="fileInput">
+    <input type="file" id="fileInput" accept=".pdf,.docx,.doc,.xlsx">
     <button onclick="uploadDocument()">Загрузить</button>
   </div>
-  <div id="documentList"></div>
-  <script src="script.js"></script>
+  
+  <div id="documentList">
+    <h2>Список документов:</h2>
+    <ul id="documents"></ul>
+  </div>
+
+  <script>
+    // Telegram WebApp API
+    const tg = Telegram.WebApp;
+
+    // Заглушка для загрузки документа
+    function uploadDocument() {
+      const fileInput = document.getElementById('fileInput');
+      const file = fileInput.files[0];
+
+      if (!file) {
+        alert("Пожалуйста, выберите файл для загрузки.");
+        return;
+      }
+
+      const list = document.getElementById('documents');
+      const listItem = document.createElement('li');
+      listItem.textContent = `Загружен документ: ${file.name}`;
+      list.appendChild(listItem);
+
+      // Пример передачи данных в Telegram Web App (если нужно отправить данные боту)
+      tg.sendData(JSON.stringify({ filename: file.name }));
+      
+      // Очистить выбор файла
+      fileInput.value = '';
+    }
+  </script>
 </body>
 </html>
