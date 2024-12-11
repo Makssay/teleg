@@ -26,10 +26,13 @@
 
   <div id="myDocsTab" class="tab-content" style="display: none;">
     <h2>Мои документы</h2>
-    <ul id="myDocuments"></ul>
+    <select id="myDocumentsSelect">
+      <option value="" disabled selected>Выберите документ</option>
+    </select>
+    <br><br>
     <label for="recipientId">ID получателя:</label>
     <input type="text" id="recipientId" placeholder="Введите ID получателя">
-    <button onclick="sendDocument()">Отправить документ</button>
+    <button onclick="sendDocument()">Отправить</button>
   </div>
 
   <div id="receivedDocsTab" class="tab-content" style="display: none;">
@@ -43,7 +46,6 @@
   </div>
 
   <script>
-    // Telegram WebApp API
     const tg = Telegram.WebApp;
 
     // Переход между вкладками
@@ -54,7 +56,7 @@
       event.currentTarget.classList.add('active');
     }
 
-    // Функция для загрузки документа
+    // Загрузка документа
     function uploadDocument() {
       const fileInput = document.getElementById('fileInput');
       const file = fileInput.files[0];
@@ -63,23 +65,27 @@
         return;
       }
 
-      const myDocsList = document.getElementById('myDocuments');
-      const listItem = document.createElement('li');
-      listItem.textContent = file.name;
-      myDocsList.appendChild(listItem);
+      const myDocumentsSelect = document.getElementById('myDocumentsSelect');
+      const option = document.createElement('option');
+      option.textContent = file.name;
+      option.value = file.name;
+      myDocumentsSelect.appendChild(option);
+
+      alert(`Документ "${file.name}" успешно загружен.`);
       fileInput.value = ''; // Очистка файла
     }
 
     // Отправка документа
     function sendDocument() {
       const recipientId = document.getElementById('recipientId').value;
-      const myDocsList = document.getElementById('myDocuments');
-      if (!recipientId || myDocsList.children.length === 0) {
-        alert("Введите ID получателя и убедитесь, что у вас есть документы.");
+      const myDocumentsSelect = document.getElementById('myDocumentsSelect');
+      const selectedDoc = myDocumentsSelect.value;
+
+      if (!recipientId || !selectedDoc) {
+        alert("Пожалуйста, выберите документ и введите ID получателя.");
         return;
       }
 
-      const selectedDoc = myDocsList.children[0].textContent; // Берём первый документ для примера
       tg.sendData(JSON.stringify({
         action: "sendDocument",
         fileName: selectedDoc,
@@ -94,12 +100,7 @@
       const receivedDocsList = document.getElementById('receivedDocuments');
       receivedDocsList.innerHTML = ''; // Очистить список перед добавлением
 
-      // Пример полученных данных
-      const mockDocuments = [
-        "Документ 1.pdf",
-        "Документ 2.docx",
-        "Документ 3.xlsx"
-      ];
+      const mockDocuments = [];
 
       mockDocuments.forEach(doc => {
         const listItem = document.createElement('li');
