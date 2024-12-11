@@ -9,49 +9,107 @@
 </head>
 <body>
   <h1>Управление документами</h1>
-  
-  <!-- Заголовок от Telegram -->
-  <script>
-    Telegram.WebApp.ready();
-    Telegram.WebApp.MainButton.setText("Готово").show();
-  </script>
 
-  <div>
+  <div class="tabs">
+    <button class="tab-button active" onclick="openTab('uploadTab')">Загрузка документов</button>
+    <button class="tab-button" onclick="openTab('myDocsTab')">Мои документы</button>
+    <button class="tab-button" onclick="openTab('receivedDocsTab')">Полученные документы</button>
+    <button class="tab-button" onclick="openTab('settingsTab')">Настройки</button>
+  </div>
+
+  <div id="uploadTab" class="tab-content">
+    <h2>Загрузка документов</h2>
     <label for="fileInput">Загрузите документ:</label>
     <input type="file" id="fileInput" accept=".pdf,.docx,.doc,.xlsx">
     <button onclick="uploadDocument()">Загрузить</button>
   </div>
-  
-  <div id="documentList">
-    <h2>Список документов:</h2>
-    <ul id="documents"></ul>
+
+  <div id="myDocsTab" class="tab-content" style="display: none;">
+    <h2>Мои документы</h2>
+    <ul id="myDocuments"></ul>
+    <label for="recipientId">ID получателя:</label>
+    <input type="text" id="recipientId" placeholder="Введите ID получателя">
+    <button onclick="sendDocument()">Отправить документ</button>
+  </div>
+
+  <div id="receivedDocsTab" class="tab-content" style="display: none;">
+    <h2>Полученные документы</h2>
+    <ul id="receivedDocuments"></ul>
+  </div>
+
+  <div id="settingsTab" class="tab-content" style="display: none;">
+    <h2>Настройки</h2>
+    <p>Здесь могут быть настройки приложения.</p>
   </div>
 
   <script>
     // Telegram WebApp API
     const tg = Telegram.WebApp;
 
-    // Заглушка для загрузки документа
+    // Переход между вкладками
+    function openTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(tab => tab.style.display = 'none');
+      document.querySelectorAll('.tab-button').forEach(button => button.classList.remove('active'));
+      document.getElementById(tabId).style.display = 'block';
+      event.currentTarget.classList.add('active');
+    }
+
+    // Функция для загрузки документа
     function uploadDocument() {
       const fileInput = document.getElementById('fileInput');
       const file = fileInput.files[0];
-
       if (!file) {
         alert("Пожалуйста, выберите файл для загрузки.");
         return;
       }
 
-      const list = document.getElementById('documents');
+      const myDocsList = document.getElementById('myDocuments');
       const listItem = document.createElement('li');
-      listItem.textContent = `Загружен документ: ${file.name}`;
-      list.appendChild(listItem);
-
-      // Пример передачи данных в Telegram Web App (если нужно отправить данные боту)
-      tg.sendData(JSON.stringify({ filename: file.name }));
-      
-      // Очистить выбор файла
-      fileInput.value = '';
+      listItem.textContent = file.name;
+      myDocsList.appendChild(listItem);
+      fileInput.value = ''; // Очистка файла
     }
+
+    // Отправка документа
+    function sendDocument() {
+      const recipientId = document.getElementById('recipientId').value;
+      const myDocsList = document.getElementById('myDocuments');
+      if (!recipientId || myDocsList.children.length === 0) {
+        alert("Введите ID получателя и убедитесь, что у вас есть документы.");
+        return;
+      }
+
+      const selectedDoc = myDocsList.children[0].textContent; // Берём первый документ для примера
+      tg.sendData(JSON.stringify({
+        action: "sendDocument",
+        fileName: selectedDoc,
+        recipientId: recipientId
+      }));
+
+      alert(`Документ "${selectedDoc}" отправлен пользователю с ID ${recipientId}.`);
+    }
+
+    // Заглушка для получения документов
+    function loadReceivedDocuments() {
+      const receivedDocsList = document.getElementById('receivedDocuments');
+      receivedDocsList.innerHTML = ''; // Очистить список перед добавлением
+
+      // Пример полученных данных
+      const mockDocuments = [
+        "Документ 1.pdf",
+        "Документ 2.docx",
+        "Документ 3.xlsx"
+      ];
+
+      mockDocuments.forEach(doc => {
+        const listItem = document.createElement('li');
+        listItem.textContent = doc;
+        receivedDocsList.appendChild(listItem);
+      });
+    }
+
+    // При загрузке страницы заполняем вкладку "Полученные документы"
+    loadReceivedDocuments();
   </script>
 </body>
 </html>

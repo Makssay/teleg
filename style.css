@@ -1,32 +1,91 @@
-
+/* Общие стили */
 body {
-    font-family: Arial, sans-serif;
-    margin: 20px;
-    background-color: #f9f9f9;
-  }
-  
-  h1 {
-    color: #333;
-  }
-  
-  label, button {
-    font-size: 16px;
-  }
-  
-  #documentList {
-    margin-top: 20px;
-  }
-  
-  button {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  
-  button:hover {
-    background-color: #0056b3;
-  }
-  
+  font-family: 'Roboto', sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #181717;
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+/* Заголовок */
+h1 {
+  color: #4a90e2;
+  margin-bottom: 20px;
+}
+
+/* Контейнер загрузки документов */
+div {
+  background-color: #2e2a2a;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 500px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* Стили для кнопок */
+button {
+  background-color: #4a90e2;
+  color: #fff;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-top: 10px;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #357abd;
+}
+
+/* Инпут файла */
+input[type="file"] {
+  margin-top: 10px;
+}
+
+
+/* Контейнер с кнопками вкладок */
+.tabs {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+/* Кнопки вкладок */
+.tab-button {
+  background-color: #4a90e2; /* Цвет заднего фона */
+  color: #fff; /* Цвет текста */
+  border: none;
+  padding: 10px 20px;
+  margin: 0 5px;
+  cursor: pointer;
+  font-size: 16px;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+
+  /* Настройка размера заднего фона */
+  background-image: linear-gradient(45deg, #4a90e2, #357abd); /* Градиент для кнопки */
+  background-size: 200% 200%; /* Размер заднего фона: увеличен в 2 раза */
+  background-position: center; /* Центрирование фона */
+}
+
+/* Изменение размера фона при наведении */
+.tab-button:hover {
+  background-size: 150% 150%; /* Увеличиваем фон при наведении */
+  background-position: right; /* Сдвигаем позицию фона */
+  background-color: #357abd; /* Цвет, если нужно */
+}
+
+/* Кнопка активной вкладки */
+.tab-button.active {
+  background-color: #357abd;
+  background-size: 100% 100%; /* Стандартный размер для активной кнопки */
+}

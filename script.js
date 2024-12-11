@@ -41,3 +41,29 @@ function addDocumentToList(name, qrCodeUrl) {
   `;
   documentList.appendChild(listItem);
 }
+
+function openTab(evt, tabId) {
+  // Скрыть все вкладки
+  const tabs = document.getElementsByClassName('tab-content');
+  for (let i = 0; i < tabs.length; i++) {
+    tabs[i].style.display = 'none';
+  }
+
+  // Убрать класс "active" у всех кнопок
+  const buttons = document.getElementsByClassName('tab-button');
+  for (let i = 0; i < buttons.length; i++) {
+    buttons[i].classList.remove('active');
+  }
+
+  // Показать выбранную вкладку
+  document.getElementById(tabId).style.display = 'block';
+
+  // Добавить класс "active" к нажатой кнопке
+  evt.currentTarget.classList.add('active');
+}
+
+// Открыть первую вкладку по умолчанию
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelector('.tab-button').click();
+});
+
