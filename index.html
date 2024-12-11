@@ -10,13 +10,6 @@
 <body>
   <h1>Управление документами</h1>
 
-  <div class="tabs">
-    <button class="tab-button active" onclick="openTab('uploadTab')">Загрузка документов</button>
-    <button class="tab-button" onclick="openTab('myDocsTab')">Мои документы</button>
-    <button class="tab-button" onclick="openTab('receivedDocsTab')">Полученные документы</button>
-    <button class="tab-button" onclick="openTab('settingsTab')">Настройки</button>
-  </div>
-
   <div id="uploadTab" class="tab-content">
     <h2>Загрузка документов</h2>
     <label for="fileInput">Загрузите документ:</label>
@@ -43,6 +36,21 @@
   <div id="settingsTab" class="tab-content" style="display: none;">
     <h2>Настройки</h2>
     <p>Здесь могут быть настройки приложения.</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-button active" onclick="openTab('uploadTab')">
+      <img src="icons/upload.svg" alt="Загрузка">
+    </button>
+    <button class="tab-button" onclick="openTab('myDocsTab')">
+      <img src="icons/my-docs.svg" alt="Мои документы">
+    </button>
+    <button class="tab-button" onclick="openTab('receivedDocsTab')">
+      <img src="icons/received.svg" alt="Полученные">
+    </button>
+    <button class="tab-button" onclick="openTab('settingsTab')">
+      <img src="icons/settings.svg" alt="Настройки">
+    </button>
   </div>
 
   <script>
@@ -100,7 +108,7 @@
       const receivedDocsList = document.getElementById('receivedDocuments');
       receivedDocsList.innerHTML = ''; // Очистить список перед добавлением
 
-      const mockDocuments = [];
+      const mockDocuments = ["Документ 1.pdf", "Документ 2.docx", "Документ 3.xlsx"];
 
       mockDocuments.forEach(doc => {
         const listItem = document.createElement('li');
