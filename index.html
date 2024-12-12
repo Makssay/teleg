@@ -10,22 +10,22 @@
 <body>
   <h1>Управление документами</h1>
 
+  <!-- Вкладки -->
   <div id="uploadTab" class="tab-content">
     <h2>Загрузка документов</h2>
-    <label for="fileInput">Загрузите документ:</label>
-    <input type="file" id="fileInput" accept=".pdf,.docx,.doc,.xlsx">
-    <button onclick="uploadDocument()">Загрузить</button>
+    <div class="upload-container">
+      <label for="fileInput" class="custom-file-input">
+        <span>Выберите файл</span>
+        <input type="file" id="fileInput" accept=".pdf,.docx,.doc,.xlsx">
+      </label>
+      <button class="upload-button" onclick="uploadDocument()">Загрузить</button>
+    </div>
   </div>
+  
 
   <div id="myDocsTab" class="tab-content" style="display: none;">
     <h2>Мои документы</h2>
-    <select id="myDocumentsSelect">
-      <option value="" disabled selected>Выберите документ</option>
-    </select>
-    <br><br>
-    <label for="recipientId">ID получателя:</label>
-    <input type="text" id="recipientId" placeholder="Введите ID получателя">
-    <button onclick="sendDocument()">Отправить</button>
+    <ul id="myDocumentsList"></ul>
   </div>
 
   <div id="receivedDocsTab" class="tab-content" style="display: none;">
@@ -38,6 +38,7 @@
     <p>Здесь могут быть настройки приложения.</p>
   </div>
 
+  <!-- Вкладки снизу -->
   <div class="tabs">
     <button class="tab-button active" onclick="openTab('uploadTab')">
       <img src="icons/upload.svg" alt="Загрузка">
@@ -53,10 +54,18 @@
     </button>
   </div>
 
+  <!-- Контекстное меню -->
+  <div id="contextMenu" class="context-menu" style="display: none;">
+    <button onclick="openDocument()">Открыть</button>
+    <button onclick="promptSendDocument()">Отправить</button>
+    <button onclick="generateQRCode()">QR-код</button>
+  </div>
+
   <script>
     const tg = Telegram.WebApp;
+    const documents = [];
 
-    // Переход между вкладками
+    // Переключение вкладок
     function openTab(tabId) {
       document.querySelectorAll('.tab-content').forEach(tab => tab.style.display = 'none');
       document.querySelectorAll('.tab-button').forEach(button => button.classList.remove('active'));
@@ -73,52 +82,83 @@
         return;
       }
 
-      const myDocumentsSelect = document.getElementById('myDocumentsSelect');
-      const option = document.createElement('option');
-      option.textContent = file.name;
-      option.value = file.name;
-      myDocumentsSelect.appendChild(option);
-
+      documents.push({ name: file.name, url: URL.createObjectURL(file) });
+      updateDocumentList();
       alert(`Документ "${file.name}" успешно загружен.`);
-      fileInput.value = ''; // Очистка файла
+      fileInput.value = '';
     }
 
-    // Отправка документа
-    function sendDocument() {
-      const recipientId = document.getElementById('recipientId').value;
-      const myDocumentsSelect = document.getElementById('myDocumentsSelect');
-      const selectedDoc = myDocumentsSelect.value;
-
-      if (!recipientId || !selectedDoc) {
-        alert("Пожалуйста, выберите документ и введите ID получателя.");
-        return;
-      }
-
-      tg.sendData(JSON.stringify({
-        action: "sendDocument",
-        fileName: selectedDoc,
-        recipientId: recipientId
-      }));
-
-      alert(`Документ "${selectedDoc}" отправлен пользователю с ID ${recipientId}.`);
-    }
-
-    // Заглушка для получения документов
-    function loadReceivedDocuments() {
-      const receivedDocsList = document.getElementById('receivedDocuments');
-      receivedDocsList.innerHTML = ''; // Очистить список перед добавлением
-
-      const mockDocuments = ["Документ 1.pdf", "Документ 2.docx", "Документ 3.xlsx"];
-
-      mockDocuments.forEach(doc => {
+    // Обновление списка документов
+    function updateDocumentList() {
+      const list = document.getElementById('myDocumentsList');
+      list.innerHTML = '';
+      documents.forEach((doc, index) => {
         const listItem = document.createElement('li');
-        listItem.textContent = doc;
-        receivedDocsList.appendChild(listItem);
+        listItem.textContent = doc.name;
+        listItem.onclick = (event) => showContextMenu(event, index);
+        list.appendChild(listItem);
       });
     }
 
-    // При загрузке страницы заполняем вкладку "Полученные документы"
-    loadReceivedDocuments();
+    // Показать контекстное меню
+    function showContextMenu(event, index) {
+      const menu = document.getElementById('contextMenu');
+      menu.style.display = 'block';
+      menu.style.top = `${event.clientY}px`;
+      menu.style.left = `${event.clientX}px`;
+      menu.setAttribute('data-doc-index', index);
+
+      // Закрыть меню, если кликнуть вне
+      document.body.onclick = function (e) {
+        if (!menu.contains(e.target)) {
+          closeContextMenu();
+        }
+      };
+
+      event.stopPropagation();
+    }
+
+    // Закрыть контекстное меню
+    function closeContextMenu() {
+      const menu = document.getElementById('contextMenu');
+      menu.style.display = 'none';
+    }
+
+    // Открыть документ
+    function openDocument() {
+      const menu = document.getElementById('contextMenu');
+      const index = menu.getAttribute('data-doc-index');
+      window.open(documents[index].url, '_blank');
+      closeContextMenu();
+    }
+
+    // Отправить документ
+    function promptSendDocument() {
+      const menu = document.getElementById('contextMenu');
+      const index = menu.getAttribute('data-doc-index');
+      const recipientId = prompt("Введите ID получателя:");
+      if (!recipientId) return;
+
+      tg.sendData(JSON.stringify({
+        action: "sendDocument",
+        fileName: documents[index].name,
+        recipientId
+      }));
+
+      alert(`Документ "${documents[index].name}" отправлен пользователю с ID ${recipientId}.`);
+      closeContextMenu();
+    }
+
+    // Генерация QR-кода
+    function generateQRCode() {
+      const menu = document.getElementById('contextMenu');
+      const index = menu.getAttribute('data-doc-index');
+      const qrUrl = documents[index].url;
+
+      alert(`QR-код для документа "${documents[index].name}": ${qrUrl}`);
+      closeContextMenu();
+    }
   </script>
 </body>
 </html>
+
