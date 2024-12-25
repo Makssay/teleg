@@ -4,10 +4,16 @@ Telegram.WebApp.ready();
 // Массив для хранения загруженных документов
 const uploadedDocuments = [];
 
+// URL сервера
+const SERVER_URL = 'https://76c7-95-24-20-127.ngrok-free.app'; // Замените на URL вашего сервера
+
 function uploadDocument() {
   const fileInput = document.getElementById('fileInput');
+  const statusMessage = document.getElementById('statusMessage');
+
   if (fileInput.files.length === 0) {
-    alert('Выберите файл для загрузки');
+    statusMessage.textContent = 'Пожалуйста, выберите файл для загрузки!';
+    statusMessage.style.color = 'red';
     return;
   }
 
@@ -15,43 +21,86 @@ function uploadDocument() {
   const formData = new FormData();
   formData.append('document', file);
 
+  // Отображаем сообщение о начале загрузки
+  statusMessage.textContent = 'Загрузка файла...';
+  statusMessage.style.color = 'blue';
+
   // Отправляем файл на сервер
-  fetch('https://your-backend-url/upload', {
+  fetch(`${SERVER_URL}/upload`, {
     method: 'POST',
     body: formData
   })
-    .then(response => response.json())
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
     .then(data => {
       if (data.status === 'success') {
-        alert('Документ успешно загружен!');
         // Сохраняем информацию о документе
         uploadedDocuments.push({
           name: file.name,
-          qrCodeUrl: data.qrCodeUrl
+          url: `${SERVER_URL}${data.file_url}`,
+          qrCodeUrl: `${SERVER_URL}${data.qr_code_url}`
         });
         // Обновляем список документов
         updateDocumentList();
+        statusMessage.textContent = 'Документ успешно загружен!';
+        statusMessage.style.color = 'green';
       } else {
-        alert('Ошибка загрузки документа');
+        throw new Error(data.message || 'Ошибка при загрузке документа');
       }
     })
     .catch(error => {
-      console.error('Ошибка:', error);
-      alert('Не удалось загрузить документ');
+      console.error('Ошибка при загрузке:', error);
+      statusMessage.textContent = 'Не удалось загрузить документ. Проверьте сервер.';
+      statusMessage.style.color = 'red';
     });
 }
 
 function updateDocumentList() {
   const documentList = document.getElementById('documentList');
   documentList.innerHTML = ''; // Очищаем список перед обновлением
-  uploadedDocuments.forEach(doc => {
+  uploadedDocuments.forEach((doc, index) => {
     const listItem = document.createElement('div');
+    listItem.className = 'document-item'; // Для стилей, если нужно
     listItem.innerHTML = `
-      <p>Документ: ${doc.name}</p>
-      <p><a href="${doc.qrCodeUrl}" target="_blank">QR-код</a></p>
+      <p>${doc.name}</p>
+      <button onclick="openDocument(${index})">Открыть документ</button>
+      <button onclick="showQrCode(${index})">Показать QR-код</button>
     `;
     documentList.appendChild(listItem);
   });
+}
+
+// Открытие документа
+function openDocument(index) {
+  const documentUrl = uploadedDocuments[index]?.url;
+  if (documentUrl) {
+    window.open(documentUrl, '_blank');
+  } else {
+    alert('Документ не найден.');
+  }
+}
+
+// Открытие QR-кода в модальном окне
+function showQrCode(index) {
+  const qrCodeUrl = uploadedDocuments[index]?.qrCodeUrl;
+  if (qrCodeUrl) {
+    const modal = document.getElementById('qrModal');
+    const qrImage = document.getElementById('qrImage');
+    qrImage.src = qrCodeUrl; // Устанавливаем URL для изображения
+    modal.style.display = 'flex'; // Показываем модальное окно
+  } else {
+    alert('QR-код не найден.');
+  }
+}
+
+// Закрытие модального окна
+function closeQrModal() {
+  const modal = document.getElementById('qrModal');
+  modal.style.display = 'none'; // Закрываем модальное окно
 }
 
 function openTab(evt, tabId) {
@@ -72,11 +121,6 @@ function openTab(evt, tabId) {
 
   // Добавить класс "active" к нажатой кнопке
   evt.currentTarget.classList.add('active');
-
-  // Если открыта вкладка "Загрузка", обновляем список документов
-  if (tabId === 'uploadTab') {
-    updateDocumentList();
-  }
 }
 
 // Открыть первую вкладку по умолчанию

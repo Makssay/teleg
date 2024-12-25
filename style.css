@@ -60,7 +60,6 @@ h1 {
   display: block;
 }
 
-
 /* Стили списка документов */
 ul {
   list-style: none;
@@ -77,59 +76,6 @@ li {
 }
 
 li:hover {
-  background-color: #4a90e2;
-}
-
-/* Стили модального окна */
-.modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.7);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.modal-content {
-  background-color: #2e2a2a;
-  padding: 20px;
-  border-radius: 10px;
-  text-align: center;
-  width: 80%;
-  max-width: 400px;
-}
-
-.modal-content button {
-  margin-top: 10px;
-}
-
-/* Контекстное меню */
-.context-menu {
-  position: absolute;
-  background-color: #2e2a2a;
-  padding: 10px;
-  border-radius: 5px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-  z-index: 1000;
-}
-
-.context-menu button {
-  background: none;
-  border: none;
-  color: #fff;
-  padding: 5px 10px;
-  text-align: left;
-  cursor: pointer;
-  display: block;
-  width: 100%;
-  transition: background-color 0.2s ease;
-}
-
-.context-menu button:hover {
   background-color: #4a90e2;
 }
 
@@ -197,4 +143,58 @@ li:hover {
 
 .upload-button:active {
   transform: translateY(0);
+}
+
+/* Кнопки для документов */
+.document-item button {
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  margin: 5px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.document-item button:hover {
+  background-color: #357abd;
+}
+
+/* Модальное окно */
+.modal {
+  display: none; /* Скрыто по умолчанию */
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background-color: #2e2a2a;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+}
+
+.modal-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 5px;
+}
+
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  font-size: 20px;
+  color: #fff;
+  cursor: pointer;
 }
