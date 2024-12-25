@@ -7,6 +7,16 @@ const uploadedDocuments = [];
 // URL сервера
 const SERVER_URL = 'https://76c7-95-24-20-127.ngrok-free.app'; // Замените на URL вашего сервера
 
+// Информация о пользователе
+const userProfile = Telegram.WebApp.initDataUnsafe.user || null;
+
+// Проверяем наличие профиля
+if (userProfile) {
+  console.log('Пользователь Telegram:', userProfile);
+  document.getElementById('statusMessage').textContent = `Привет, ${userProfile.first_name}!`;
+}
+
+// Загрузка документа
 function uploadDocument() {
   const fileInput = document.getElementById('fileInput');
   const statusMessage = document.getElementById('statusMessage');
@@ -28,7 +38,11 @@ function uploadDocument() {
   // Отправляем файл на сервер
   fetch(`${SERVER_URL}/upload`, {
     method: 'POST',
-    body: formData
+    headers: {
+      'user_id': userProfile?.id || '',
+      'first_name': userProfile?.first_name || '',
+    },
+    body: formData,
   })
     .then(response => {
       if (!response.ok) {
@@ -42,7 +56,7 @@ function uploadDocument() {
         uploadedDocuments.push({
           name: file.name,
           url: `${SERVER_URL}${data.file_url}`,
-          qrCodeUrl: `${SERVER_URL}${data.qr_code_url}`
+          qrCodeUrl: `${SERVER_URL}${data.qr_code_url}`,
         });
         // Обновляем список документов
         updateDocumentList();
@@ -59,6 +73,7 @@ function uploadDocument() {
     });
 }
 
+// Обновление списка документов
 function updateDocumentList() {
   const documentList = document.getElementById('documentList');
   documentList.innerHTML = ''; // Очищаем список перед обновлением
@@ -78,10 +93,21 @@ function updateDocumentList() {
 function openDocument(index) {
   const documentUrl = uploadedDocuments[index]?.url;
   if (documentUrl) {
-    window.open(documentUrl, '_blank');
+    const modal = document.getElementById('documentModal');
+    const docFrame = document.getElementById('docFrame');
+    docFrame.src = documentUrl; // Устанавливаем URL документа
+    modal.style.display = 'flex'; // Показываем модальное окно
   } else {
     alert('Документ не найден.');
   }
+}
+
+// Закрытие модального окна документа
+function closeDocumentModal() {
+  const modal = document.getElementById('documentModal');
+  const docFrame = document.getElementById('docFrame');
+  modal.style.display = 'none';
+  docFrame.src = ''; // Очищаем iframe
 }
 
 // Открытие QR-кода в модальном окне
@@ -97,10 +123,10 @@ function showQrCode(index) {
   }
 }
 
-// Закрытие модального окна
+// Закрытие модального окна QR-кода
 function closeQrModal() {
   const modal = document.getElementById('qrModal');
-  modal.style.display = 'none'; // Закрываем модальное окно
+  modal.style.display = 'none';
 }
 
 function openTab(evt, tabId) {
