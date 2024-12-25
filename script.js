@@ -5,7 +5,7 @@ Telegram.WebApp.ready();
 const uploadedDocuments = [];
 
 // URL сервера
-const SERVER_URL = 'https://76c7-95-24-20-127.ngrok-free.app'; // Замените на URL вашего сервера
+const SERVER_URL = 'https://61b6-95-24-20-127.ngrok-free.app'; // Замените на URL вашего сервера
 
 // Информация о пользователе
 const userProfile = Telegram.WebApp.initDataUnsafe.user || null;
