@@ -8,6 +8,12 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
+  <div class="background-blocks">
+    <div class="block"></div>
+    <div class="block"></div>
+    <div class="block"></div>
+  </div>
+
   <h1>Управление документами</h1>
 
   <!-- Информация о пользователе -->
@@ -31,7 +37,13 @@
   <!-- Вкладка "Мои документы" -->
   <div id="myDocsTab" class="tab-content" style="display: none;">
     <h2>Мои документы</h2>
-    <div id="documentList"></div>
+    <div id="documentList" class="document-list"></div>
+  </div>
+
+  <!-- Вкладка "Полученные документы" -->
+  <div id="receivedDocsTab" class="tab-content" style="display: none;">
+    <h2>Полученные документы</h2>
+    <div id="receivedDocumentList" class="document-list"></div>
   </div>
 
   <!-- Вкладки снизу -->
@@ -41,6 +53,9 @@
     </button>
     <button class="tab-button" onclick="openTab(event, 'myDocsTab')">
       <img src="icons/my-docs.svg" alt="Мои документы">
+    </button>
+    <button class="tab-button" onclick="openTab(event, 'receivedDocsTab')">
+      <img src="icons/received-docs.svg" alt="Полученные документы">
     </button>
   </div>
 
@@ -63,9 +78,9 @@
   <script>
     const SERVER_URL = "http://localhost:5000"; // URL вашего Flask-сервера
     const documents = [];
+    const receivedDocuments = [];
     const tg = Telegram.WebApp;
 
-    // Отображение профиля пользователя
     document.addEventListener('DOMContentLoaded', () => {
       const userProfileElement = document.getElementById('userProfile');
       const userId = tg.initDataUnsafe?.user?.id || 'guest';
@@ -110,7 +125,7 @@
       try {
         const response = await fetch(`${SERVER_URL}/upload`, {
           method: "POST",
-          body: formData
+          body: formData,
         });
 
         if (!response.ok) throw new Error(`Ошибка сервера: ${response.status}`);
@@ -123,7 +138,7 @@
           documents.push({
             name: data.file_name,
             url: `${SERVER_URL}${data.file_url}`,
-            qrCodeUrl: `${SERVER_URL}${data.qr_code_url}`
+            qrCodeUrl: `${SERVER_URL}${data.qr_code_url}`,
           });
           updateDocumentList();
         } else {
@@ -144,12 +159,24 @@
         const listItem = document.createElement('div');
         listItem.className = 'document-item';
         listItem.innerHTML = `
-          <p>${doc.name}</p>
-          <button onclick="showQrCode(${index})">Показать QR-код</button>
-          <button onclick="openDocument(${index})">Открыть документ</button>
+          <div onclick="toggleDocumentActions(${index})">
+            <p>${doc.name}</p>
+          </div>
+          <div id="actions-${index}" class="document-actions" style="display: none;">
+            <button onclick="showQrCode(${index})">QR-код</button>
+            <button onclick="openDocument(${index})">Открыть</button>
+            <button onclick="sendDocument(${index})">Отправить</button>
+          </div>
         `;
         list.appendChild(listItem);
       });
+    }
+
+    function toggleDocumentActions(index) {
+      const actions = document.getElementById(`actions-${index}`);
+      const allActions = document.querySelectorAll('.document-actions');
+      allActions.forEach(action => (action.style.display = 'none'));
+      actions.style.display = 'block';
     }
 
     function showQrCode(index) {
@@ -184,6 +211,10 @@
     function closeDocumentModal() {
       const modal = document.getElementById('documentModal');
       modal.style.display = 'none';
+    }
+
+    function sendDocument(index) {
+      alert(`Отправка документа "${documents[index].name}"`);
     }
   </script>
 </body>

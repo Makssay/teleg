@@ -1,11 +1,12 @@
 // Telegram Web Apps Initialization
 Telegram.WebApp.ready();
 
-// Массив для хранения загруженных документов
+// Массив для хранения загруженных и полученных документов
 const uploadedDocuments = [];
+const receivedDocuments = [];
 
 // URL сервера
-const SERVER_URL = 'http://localhost:5000'; // Замените на URL вашего сервера
+const SERVER_URL = 'https://23e8-95-24-20-127.ngrok-free.app'; // Замените на URL вашего сервера
 
 // Профиль пользователя
 let userProfile = {
@@ -98,9 +99,13 @@ function updateDocumentList() {
       <p>${doc.name}</p>
       <button onclick="openDocument(${index})">Открыть документ</button>
       <button onclick="showQrCode(${index})">Показать QR-код</button>
+      <button onclick="sendDocument(${index})">Отправить документ</button>
     `;
     documentList.appendChild(listItem);
   });
+
+  // Обновляем список полученных документов
+  updateReceivedDocumentList();
 }
 
 // Открытие документа
@@ -130,6 +135,74 @@ function showQrCode(index) {
 function closeQrModal() {
   const modal = document.getElementById('qrModal');
   modal.style.display = 'none'; // Закрываем модальное окно
+}
+
+// Отправка документа другому пользователю
+function sendDocument(index) {
+  const receiverId = prompt("Введите ID получателя:");
+  if (!receiverId) {
+    alert("Получатель не указан.");
+    return;
+  }
+
+  const documentId = uploadedDocuments[index].name;
+
+  // Отправка запроса на сервер для передачи документа
+  fetch(`${SERVER_URL}/send_document`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      sender_id: userProfile.id,
+      receiver_id: receiverId,
+      document_id: documentId,
+    }),
+  })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'success') {
+        alert("Документ успешно отправлен!");
+      } else {
+        alert("Ошибка при отправке документа.");
+      }
+    })
+    .catch(error => {
+      console.error('Ошибка при отправке:', error);
+      alert('Произошла ошибка при отправке документа.');
+    });
+}
+
+// Обновление списка полученных документов
+function updateReceivedDocumentList() {
+  const receivedDocumentList = document.getElementById('receivedDocumentList');
+  receivedDocumentList.innerHTML = ''; // Очищаем список перед обновлением
+  receivedDocuments.forEach((doc, index) => {
+    const listItem = document.createElement('div');
+    listItem.className = 'document-item';
+    listItem.innerHTML = `
+      <p>${doc.name}</p>
+      <button onclick="signDocument(${index})">Подписать</button>
+      <button onclick="ignoreDocument(${index})">Игнорировать</button>
+    `;
+    receivedDocumentList.appendChild(listItem);
+  });
+}
+
+// Подписать документ
+function signDocument(index) {
+  const doc = receivedDocuments[index];
+  uploadedDocuments.push(doc); // Добавляем в мои документы
+  receivedDocuments.splice(index, 1); // Удаляем из полученных документов
+  updateDocumentList();
+  alert("Документ подписан и добавлен в мои документы.");
+}
+
+// Игнорировать документ
+function ignoreDocument(index) {
+  receivedDocuments.splice(index, 1); // Удаляем документ из полученных
+  updateReceivedDocumentList();
+  alert("Документ проигнорирован.");
 }
 
 function openTab(evt, tabId) {
