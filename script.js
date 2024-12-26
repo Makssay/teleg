@@ -5,18 +5,8 @@ Telegram.WebApp.ready();
 const uploadedDocuments = [];
 
 // URL сервера
-const SERVER_URL = 'https://61b6-95-24-20-127.ngrok-free.app'; // Замените на URL вашего сервера
+const SERVER_URL = 'http://localhost:5000'; // Замените на URL вашего сервера
 
-// Информация о пользователе
-const userProfile = Telegram.WebApp.initDataUnsafe.user || null;
-
-// Проверяем наличие профиля
-if (userProfile) {
-  console.log('Пользователь Telegram:', userProfile);
-  document.getElementById('statusMessage').textContent = `Привет, ${userProfile.first_name}!`;
-}
-
-// Загрузка документа
 function uploadDocument() {
   const fileInput = document.getElementById('fileInput');
   const statusMessage = document.getElementById('statusMessage');
@@ -31,6 +21,10 @@ function uploadDocument() {
   const formData = new FormData();
   formData.append('document', file);
 
+  // Получаем информацию о пользователе
+  const userId = Telegram.WebApp.initDataUnsafe?.user?.id || 'guest';
+  const userName = Telegram.WebApp.initDataUnsafe?.user?.first_name || 'Гость';
+
   // Отображаем сообщение о начале загрузки
   statusMessage.textContent = 'Загрузка файла...';
   statusMessage.style.color = 'blue';
@@ -39,10 +33,10 @@ function uploadDocument() {
   fetch(`${SERVER_URL}/upload`, {
     method: 'POST',
     headers: {
-      'user_id': userProfile?.id || '',
-      'first_name': userProfile?.first_name || '',
+      'user_id': userId,
+      'first_name': userName
     },
-    body: formData,
+    body: formData
   })
     .then(response => {
       if (!response.ok) {
@@ -56,7 +50,7 @@ function uploadDocument() {
         uploadedDocuments.push({
           name: file.name,
           url: `${SERVER_URL}${data.file_url}`,
-          qrCodeUrl: `${SERVER_URL}${data.qr_code_url}`,
+          qrCodeUrl: `${SERVER_URL}${data.qr_code_url}`
         });
         // Обновляем список документов
         updateDocumentList();
@@ -73,7 +67,6 @@ function uploadDocument() {
     });
 }
 
-// Обновление списка документов
 function updateDocumentList() {
   const documentList = document.getElementById('documentList');
   documentList.innerHTML = ''; // Очищаем список перед обновлением
@@ -93,21 +86,10 @@ function updateDocumentList() {
 function openDocument(index) {
   const documentUrl = uploadedDocuments[index]?.url;
   if (documentUrl) {
-    const modal = document.getElementById('documentModal');
-    const docFrame = document.getElementById('docFrame');
-    docFrame.src = documentUrl; // Устанавливаем URL документа
-    modal.style.display = 'flex'; // Показываем модальное окно
+    window.open(documentUrl, '_blank');
   } else {
     alert('Документ не найден.');
   }
-}
-
-// Закрытие модального окна документа
-function closeDocumentModal() {
-  const modal = document.getElementById('documentModal');
-  const docFrame = document.getElementById('docFrame');
-  modal.style.display = 'none';
-  docFrame.src = ''; // Очищаем iframe
 }
 
 // Открытие QR-кода в модальном окне
@@ -123,10 +105,10 @@ function showQrCode(index) {
   }
 }
 
-// Закрытие модального окна QR-кода
+// Закрытие модального окна
 function closeQrModal() {
   const modal = document.getElementById('qrModal');
-  modal.style.display = 'none';
+  modal.style.display = 'none'; // Закрываем модальное окно
 }
 
 function openTab(evt, tabId) {
