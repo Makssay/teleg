@@ -7,6 +7,27 @@ const uploadedDocuments = [];
 // URL сервера
 const SERVER_URL = 'http://localhost:5000'; // Замените на URL вашего сервера
 
+// Профиль пользователя
+let userProfile = {
+  id: 'guest',
+  name: 'Гость',
+};
+
+// Инициализация данных пользователя
+function initializeUserProfile() {
+  const userData = Telegram.WebApp.initDataUnsafe?.user;
+  if (userData) {
+    userProfile.id = userData.id;
+    userProfile.name = userData.first_name;
+  }
+  const userProfileElement = document.getElementById('userProfile');
+  userProfileElement.innerHTML = `
+    <p><strong>Пользователь:</strong> ${userProfile.name}</p>
+    <p><strong>ID:</strong> ${userProfile.id}</p>
+  `;
+}
+
+// Загрузка документа
 function uploadDocument() {
   const fileInput = document.getElementById('fileInput');
   const statusMessage = document.getElementById('statusMessage');
@@ -21,9 +42,11 @@ function uploadDocument() {
   const formData = new FormData();
   formData.append('document', file);
 
-  // Получаем информацию о пользователе
-  const userId = Telegram.WebApp.initDataUnsafe?.user?.id || 'guest';
-  const userName = Telegram.WebApp.initDataUnsafe?.user?.first_name || 'Гость';
+  // Добавляем ID пользователя в заголовки
+  const headers = {
+    'user_id': userProfile.id,
+    'first_name': userProfile.name,
+  };
 
   // Отображаем сообщение о начале загрузки
   statusMessage.textContent = 'Загрузка файла...';
@@ -32,11 +55,8 @@ function uploadDocument() {
   // Отправляем файл на сервер
   fetch(`${SERVER_URL}/upload`, {
     method: 'POST',
-    headers: {
-      'user_id': userId,
-      'first_name': userName
-    },
-    body: formData
+    headers,
+    body: formData,
   })
     .then(response => {
       if (!response.ok) {
@@ -50,7 +70,7 @@ function uploadDocument() {
         uploadedDocuments.push({
           name: file.name,
           url: `${SERVER_URL}${data.file_url}`,
-          qrCodeUrl: `${SERVER_URL}${data.qr_code_url}`
+          qrCodeUrl: `${SERVER_URL}${data.qr_code_url}`,
         });
         // Обновляем список документов
         updateDocumentList();
@@ -67,6 +87,7 @@ function uploadDocument() {
     });
 }
 
+// Обновление списка документов
 function updateDocumentList() {
   const documentList = document.getElementById('documentList');
   documentList.innerHTML = ''; // Очищаем список перед обновлением
@@ -133,5 +154,6 @@ function openTab(evt, tabId) {
 
 // Открыть первую вкладку по умолчанию
 document.addEventListener('DOMContentLoaded', () => {
+  initializeUserProfile(); // Инициализируем данные пользователя
   document.querySelector('.tab-button').click();
 });

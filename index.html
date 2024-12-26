@@ -10,6 +10,11 @@
 <body>
   <h1>Управление документами</h1>
 
+  <!-- Информация о пользователе -->
+  <div id="userProfile" style="color: #4a90e2; margin-bottom: 20px;">
+    <p>Загрузка данных пользователя...</p>
+  </div>
+
   <!-- Вкладка "Загрузка документов" -->
   <div id="uploadTab" class="tab-content">
     <h2>Загрузка документов</h2>
@@ -59,6 +64,18 @@
     const SERVER_URL = "http://localhost:5000"; // URL вашего Flask-сервера
     const documents = [];
     const tg = Telegram.WebApp;
+
+    // Отображение профиля пользователя
+    document.addEventListener('DOMContentLoaded', () => {
+      const userProfileElement = document.getElementById('userProfile');
+      const userId = tg.initDataUnsafe?.user?.id || 'guest';
+      const userName = tg.initDataUnsafe?.user?.first_name || 'Гость';
+
+      userProfileElement.innerHTML = `
+        <p><strong>Пользователь:</strong> ${userName}</p>
+        <p><strong>ID:</strong> ${userId}</p>
+      `;
+    });
 
     function openTab(event, tabId) {
       document.querySelectorAll('.tab-content').forEach(tab => tab.style.display = 'none');
@@ -135,7 +152,6 @@
       });
     }
 
-    // Открытие QR-кода
     function showQrCode(index) {
       const qrCodeUrl = documents[index]?.qrCodeUrl;
       if (qrCodeUrl) {
@@ -153,20 +169,18 @@
       modal.style.display = 'none';
     }
 
-    // Открытие документа
     function openDocument(index) {
       const documentUrl = documents[index]?.url;
       if (documentUrl) {
         const modal = document.getElementById('documentModal');
         const iframe = document.getElementById('documentIframe');
-        iframe.src = documentUrl;  // Загружаем документ в iframe
-        modal.style.display = 'flex';  // Показываем модальное окно с документом
+        iframe.src = documentUrl;
+        modal.style.display = 'flex';
       } else {
         alert("Документ не найден.");
       }
     }
 
-    // Закрытие модального окна с документом
     function closeDocumentModal() {
       const modal = document.getElementById('documentModal');
       modal.style.display = 'none';
