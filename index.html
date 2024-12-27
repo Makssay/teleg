@@ -71,7 +71,7 @@
   <div id="documentModal" class="modal" style="display: none;">
     <div class="modal-content">
       <span class="close-button" onclick="closeDocumentModal()">&times;</span>
-      <iframe id="documentIframe" ></iframe>
+      <iframe id="documentIframe"></iframe>
     </div>
   </div>
 
@@ -81,11 +81,10 @@
       <span class="close-button" onclick="closeSendDocumentModal()">&times;</span>
       <p>Введите ID пользователя, которому хотите отправить документ:</p>
       <input type="text" id="receiverIdInput" placeholder="ID пользователя">
-        <div style="display: flex; justify-content: space-between;">
-            <button id="sendDocButton" >Отправить</button>
-            <button id="cancelSendButton">Отмена</button>
-       </div>
-
+      <div style="display: flex; justify-content: space-between;">
+        <button id="sendDocButton" onclick="sendDocument()">Отправить</button>
+        <button id="cancelSendButton" onclick="closeSendDocumentModal()">Отмена</button>
+      </div>
     </div>
   </div>
 
@@ -179,7 +178,7 @@
           <div id="actions-${index}" class="document-actions" style="display: none;">
             <button onclick="showQrCode(${index})">QR-код</button>
             <button onclick="openDocument(${index})">Открыть</button>
-            <button onclick="sendDocument(${index})">Отправить</button>
+            <button onclick="sendDocumentModal(${index})">Отправить</button>
           </div>
         `;
         list.appendChild(listItem);
@@ -227,10 +226,29 @@
       modal.style.display = 'none';
     }
 
+    function sendDocumentModal(index) {
+      const modal = document.getElementById('sendDocumentModal');
+      modal.style.display = 'flex';
+
+      const sendButton = document.getElementById('sendDocButton');
+      sendButton.onclick = () => sendDocument(index);
+    }
+
+    function closeSendDocumentModal() {
+      const modal = document.getElementById('sendDocumentModal');
+      modal.style.display = 'none';
+    }
+
     function sendDocument(index) {
-      alert(`Отправка документа "${documents[index].name}"`);
+      const receiverId = document.getElementById('receiverIdInput').value;
+      if (receiverId) {
+        alert(`Документ "${documents[index].name}" отправлен пользователю с ID: ${receiverId}`);
+        closeSendDocumentModal();
+      } else {
+        alert("Пожалуйста, введите ID получателя.");
+      }
     }
   </script>
-    <script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
