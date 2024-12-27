@@ -66,7 +66,7 @@
                // Обновляем список документов
                 statusMessage.textContent = 'Документ успешно загружен!';
                 statusMessage.style.color = 'green';
-                await updateDocumentList()
+                 await updateDocumentList()
 
           } else {
                throw new Error(data.message || 'Ошибка при загрузке документа');
@@ -245,7 +245,7 @@ async function fetchReceivedDocuments() {
                  if (data.status === 'success') {
                        alert("Документ подписан и добавлен в мои документы.");
                        updateReceivedDocumentList();
-                       updateDocumentList()
+                       await updateDocumentList()
                  } else {
                       alert("Ошибка при подписании документа.");
                  }
@@ -307,7 +307,7 @@ async function fetchReceivedDocuments() {
    evt.currentTarget.classList.add('active');
 
   if (tabId === 'myDocsTab'){
-       await updateDocumentList()
+     await  updateDocumentList()
    }
   if (tabId === 'receivedDocsTab'){
          await updateReceivedDocumentList()
@@ -318,6 +318,5 @@ async function fetchReceivedDocuments() {
  document.addEventListener('DOMContentLoaded', async () => {
    initializeUserProfile();
    document.querySelector('.tab-button').click();
-   await updateDocumentList();
-
+    await updateDocumentList()
  });
