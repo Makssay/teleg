@@ -49,13 +49,13 @@
   <!-- Вкладки снизу -->
   <div class="tabs">
     <button class="tab-button active" onclick="openTab(event, 'uploadTab')">
-      <img src="icons/upload.svg" alt="Загрузка">
+      <img src="/icons/upload.svg" alt="Загрузка">
     </button>
     <button class="tab-button" onclick="openTab(event, 'myDocsTab')">
-      <img src="icons/my-docs.svg" alt="Мои документы">
+      <img src="/icons/my-docs.svg" alt="Мои документы">
     </button>
     <button class="tab-button" onclick="openTab(event, 'receivedDocsTab')">
-      <img src="icons/received-docs.svg" alt="Полученные документы">
+      <img src="/icons/received-docs.svg" alt="Полученные документы">
     </button>
   </div>
 
@@ -82,6 +82,7 @@
     const tg = Telegram.WebApp;
 
     document.addEventListener('DOMContentLoaded', () => {
+      initializeUserProfile();
       const userProfileElement = document.getElementById('userProfile');
       const userId = tg.initDataUnsafe?.user?.id || 'guest';
       const userName = tg.initDataUnsafe?.user?.first_name || 'Гость';
