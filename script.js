@@ -8,7 +8,7 @@ console.log("Telegram.WebApp.ready: end");
   const receivedDocuments = [];
 
   // URL сервера
-  const SERVER_URL =  Telegram.WebApp.initDataUnsafe ?  'https://your_ngrok_url.ngrok-free.app' : "http://localhost:5000"; // ОБНОВИТЕ ЭТОТ URL
+  const SERVER_URL = 'https://0d14-95-24-20-127.ngrok-free.app'; // ОБНОВИТЕ ЭТОТ URL
 
   // Профиль пользователя
   let userProfile = {
