@@ -55,7 +55,7 @@
       <img src="icons/my-docs.svg" alt="Мои документы">
     </button>
     <button class="tab-button" onclick="openTab(event, 'receivedDocsTab')">
-      <img src="icons/received-docs.svg" alt="Полученные документы">
+      <img src="icons/received.svg" alt="Полученные документы">
     </button>
   </div>
 
@@ -71,7 +71,21 @@
   <div id="documentModal" class="modal" style="display: none;">
     <div class="modal-content">
       <span class="close-button" onclick="closeDocumentModal()">&times;</span>
-      <iframe id="documentIframe" style="width: 100%; height: 80vh;"></iframe>
+      <iframe id="documentIframe" ></iframe>
+    </div>
+  </div>
+
+  <!-- Модальное окно для ввода ID пользователя -->
+  <div id="sendDocumentModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <span class="close-button" onclick="closeSendDocumentModal()">&times;</span>
+      <p>Введите ID пользователя, которому хотите отправить документ:</p>
+      <input type="text" id="receiverIdInput" placeholder="ID пользователя">
+        <div style="display: flex; justify-content: space-between;">
+            <button id="sendDocButton" >Отправить</button>
+            <button id="cancelSendButton">Отмена</button>
+       </div>
+
     </div>
   </div>
 
@@ -217,5 +231,6 @@
       alert(`Отправка документа "${documents[index].name}"`);
     }
   </script>
+    <script src="script.js"></script>
 </body>
 </html>
