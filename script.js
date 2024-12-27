@@ -18,9 +18,9 @@ console.log("Telegram.WebApp.ready: end");
 
   // Инициализация данных пользователя
   async function initializeUserProfile() {
-   console.log("initializeUserProfile: start");
-   const userData = Telegram.WebApp.initDataUnsafe?.user;
-   console.log("initializeUserProfile: userData", userData);
+    console.log("initializeUserProfile: start");
+    const userData = Telegram.WebApp.initDataUnsafe?.user;
+    console.log("initializeUserProfile: userData", userData);
     if (userData) {
         userProfile.id = userData.id;
         userProfile.name = userData.first_name;
@@ -29,14 +29,16 @@ console.log("Telegram.WebApp.ready: end");
               console.log('User added:', userProfile.id);
               await getFiles() // получаем файлы после добавления пользователя.
           }
-     }
-   const userProfileElement = document.getElementById('userProfile');
-   userProfileElement.innerHTML = `
-       <p><strong>Пользователь:</strong> ${userProfile.name}</p>
-       <p><strong>ID:</strong> ${userProfile.id}</p>
-   `;
-    console.log("initializeUserProfile: end");
- }
+       }else {
+           console.log("initializeUserProfile: userData is null");
+       }
+    const userProfileElement = document.getElementById('userProfile');
+    userProfileElement.innerHTML = `
+        <p><strong>Пользователь:</strong> ${userProfile.name}</p>
+        <p><strong>ID:</strong> ${userProfile.id}</p>
+    `;
+     console.log("initializeUserProfile: end");
+  }
   async function addUser(userId) {
    const response = await fetch(`${SERVER_URL}/api/add_user`, {
        method: 'POST',
