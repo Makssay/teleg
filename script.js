@@ -1,10 +1,6 @@
 // Telegram Web Apps Initialization
 Telegram.WebApp.ready();
 
-// Массив для хранения загруженных и полученных документов
-const uploadedDocuments = [];
-const receivedDocuments = [];
-
 // URL сервера
 const SERVER_URL = 'https://0d14-95-24-20-127.ngrok-free.app'; // Замените на URL вашего сервера
 
@@ -29,7 +25,7 @@ function initializeUserProfile() {
 }
 
 // Загрузка документа
-function uploadDocument() {
+async function uploadDocument() {
   const fileInput = document.getElementById('fileInput');
   const statusMessage = document.getElementById('statusMessage');
 
@@ -54,63 +50,79 @@ function uploadDocument() {
   statusMessage.style.color = 'blue';
 
   // Отправляем файл на сервер
-  fetch(`${SERVER_URL}/upload`, {
-    method: 'POST',
-    headers,
-    body: formData,
-  })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return response.json();
-    })
-    .then(data => {
-      if (data.status === 'success') {
-        // Сохраняем информацию о документе
-        uploadedDocuments.push({
-          name: file.name,
-          url: `${SERVER_URL}${data.file_url}`,
-          qrCodeUrl: `${SERVER_URL}${data.qr_code_url}`,
+  try {
+        const response = await fetch(`${SERVER_URL}/upload`, {
+              method: 'POST',
+              headers,
+              body: formData,
         });
-        // Обновляем список документов
-        updateDocumentList();
-        statusMessage.textContent = 'Документ успешно загружен!';
-        statusMessage.style.color = 'green';
-      } else {
-        throw new Error(data.message || 'Ошибка при загрузке документа');
-      }
-    })
-    .catch(error => {
-      console.error('Ошибка при загрузке:', error);
-      statusMessage.textContent = 'Не удалось загрузить документ. Проверьте сервер.';
-      statusMessage.style.color = 'red';
-    });
-}
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        }
+          const data = await response.json();
+          if (data.status === 'success') {
+              // Обновляем список документов
+               statusMessage.textContent = 'Документ успешно загружен!';
+               statusMessage.style.color = 'green';
+               fetchDocuments()
+
+         } else {
+              throw new Error(data.message || 'Ошибка при загрузке документа');
+          }
+      } catch (error) {
+          console.error('Ошибка при загрузке:', error);
+           statusMessage.textContent = 'Не удалось загрузить документ. Проверьте сервер.';
+           statusMessage.style.color = 'red';
+       }
+ }
 
 // Обновление списка документов
-function updateDocumentList() {
-  const documentList = document.getElementById('documentList');
-  documentList.innerHTML = ''; // Очищаем список перед обновлением
-  uploadedDocuments.forEach((doc, index) => {
-    const listItem = document.createElement('div');
-    listItem.className = 'document-item'; // Для стилей, если нужно
-    listItem.innerHTML = `
-      <p>${doc.name}</p>
-      <button onclick="openDocument(${index})">Открыть документ</button>
-      <button onclick="showQrCode(${index})">Показать QR-код</button>
-      <button onclick="sendDocument(${index})">Отправить документ</button>
-    `;
-    documentList.appendChild(listItem);
-  });
+async function updateDocumentList() {
+     const documentList = document.getElementById('documentList');
+     documentList.innerHTML = ''; // Очищаем список перед обновлением
+      const files = await fetchDocuments()
+     if (files && files.length > 0) {
+           files.forEach((doc, index) => {
+                const listItem = document.createElement('div');
+                listItem.className = 'document-item'; // Для стилей, если нужно
+                listItem.innerHTML = `
+                     <p>${doc.file_name}</p>
+                     <button onclick="openDocument('${doc.file_url}')">Открыть документ</button>
+                     <button onclick="showQrCode('${doc.file_url}')">Показать QR-код</button>
+                     <button onclick="sendDocument('${doc.file_name}')">Отправить документ</button>
+                `;
+                 documentList.appendChild(listItem);
+           });
 
-  // Обновляем список полученных документов
-  updateReceivedDocumentList();
+     }
 }
 
+// получение списка файлов пользователя
+async function fetchDocuments(){
+  try {
+    const response = await fetch(`${SERVER_URL}/get_user_files/${userProfile.id}`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+     if (data.status === 'success') {
+      return data.files
+    } else {
+      console.error("Error getting files:", data.message);
+      return [];
+    }
+
+  } catch (error) {
+    console.error("Error fetching user files:", error);
+  }
+    return [];
+}
+
+
 // Открытие документа
-function openDocument(index) {
-  const documentUrl = uploadedDocuments[index]?.url;
+function openDocument(documentUrl) {
   if (documentUrl) {
     window.open(documentUrl, '_blank');
   } else {
@@ -119,11 +131,11 @@ function openDocument(index) {
 }
 
 // Открытие QR-кода в модальном окне
-function showQrCode(index) {
-  const qrCodeUrl = uploadedDocuments[index]?.qrCodeUrl;
-  if (qrCodeUrl) {
+function showQrCode(documentUrl) {
+  if (documentUrl) {
     const modal = document.getElementById('qrModal');
     const qrImage = document.getElementById('qrImage');
+      const qrCodeUrl = documentUrl.replace("/uploaded_documents/","/qr_codes/") + ".png";
     qrImage.src = qrCodeUrl; // Устанавливаем URL для изображения
     modal.style.display = 'flex'; // Показываем модальное окно
   } else {
@@ -138,14 +150,12 @@ function closeQrModal() {
 }
 
 // Отправка документа другому пользователю
-function sendDocument(index) {
+function sendDocument(documentName) {
   const receiverId = prompt("Введите ID получателя:");
   if (!receiverId) {
     alert("Получатель не указан.");
     return;
   }
-
-  const documentId = uploadedDocuments[index].name;
 
   // Отправка запроса на сервер для передачи документа
   fetch(`${SERVER_URL}/send_document`, {
@@ -156,7 +166,7 @@ function sendDocument(index) {
     body: JSON.stringify({
       sender_id: userProfile.id,
       receiver_id: receiverId,
-      document_id: documentId,
+      document_id: documentName,
     }),
   })
     .then(response => response.json())
@@ -166,6 +176,7 @@ function sendDocument(index) {
       } else {
         alert("Ошибка при отправке документа.");
       }
+        updateReceivedDocumentList()
     })
     .catch(error => {
       console.error('Ошибка при отправке:', error);
@@ -174,35 +185,106 @@ function sendDocument(index) {
 }
 
 // Обновление списка полученных документов
-function updateReceivedDocumentList() {
-  const receivedDocumentList = document.getElementById('receivedDocumentList');
-  receivedDocumentList.innerHTML = ''; // Очищаем список перед обновлением
-  receivedDocuments.forEach((doc, index) => {
-    const listItem = document.createElement('div');
-    listItem.className = 'document-item';
-    listItem.innerHTML = `
-      <p>${doc.name}</p>
-      <button onclick="signDocument(${index})">Подписать</button>
-      <button onclick="ignoreDocument(${index})">Игнорировать</button>
-    `;
-    receivedDocumentList.appendChild(listItem);
-  });
+  async function updateReceivedDocumentList() {
+      const receivedDocumentList = document.getElementById('receivedDocumentList');
+      receivedDocumentList.innerHTML = ''; // Очищаем список перед обновлением
+
+     const received =  await fetchReceivedDocuments()
+      if (received && received.length > 0) {
+             received.forEach((doc, index) => {
+                const listItem = document.createElement('div');
+                listItem.className = 'document-item';
+                listItem.innerHTML = `
+                     <p>${doc.file_name}</p>
+                     <button onclick="signDocument(${index}, '${doc.document_id}')">Подписать</button>
+                     <button onclick="ignoreDocument(${index}, '${doc.document_id}')">Игнорировать</button>
+                `;
+                 receivedDocumentList.appendChild(listItem);
+             })
+      }
+
+
+  }
+
+//получение списка документов
+async function fetchReceivedDocuments() {
+  try {
+      const response = await fetch(`${SERVER_URL}/received_documents/${userProfile.id}`);
+      if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      if (data.status === 'success') {
+          return data.documents
+      } else {
+          console.error("Error getting received documents:", data.message);
+           return [];
+      }
+  } catch (error) {
+       console.error("Error fetching received documents:", error);
+      return []
+  }
 }
 
 // Подписать документ
-function signDocument(index) {
-  const doc = receivedDocuments[index];
-  uploadedDocuments.push(doc); // Добавляем в мои документы
-  receivedDocuments.splice(index, 1); // Удаляем из полученных документов
-  updateDocumentList();
-  alert("Документ подписан и добавлен в мои документы.");
+  async function signDocument(index, documentId) {
+       // Отправка запроса на сервер для обработки документа
+        fetch(`${SERVER_URL}/process_document`, {
+          method: 'POST',
+          headers: {
+               'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+               user_id: userProfile.id,
+               document_id: documentId,
+               action: "sign"
+            }),
+         })
+          .then(response => response.json())
+          .then(data => {
+                if (data.status === 'success') {
+                      alert("Документ подписан и добавлен в мои документы.");
+                      updateReceivedDocumentList();
+                      updateDocumentList()
+                } else {
+                     alert("Ошибка при подписании документа.");
+                }
+            })
+          .catch(error => {
+                 console.error('Ошибка при обработке:', error);
+                 alert('Произошла ошибка при подписании документа.');
+            });
+
+
 }
 
 // Игнорировать документ
-function ignoreDocument(index) {
-  receivedDocuments.splice(index, 1); // Удаляем документ из полученных
-  updateReceivedDocumentList();
-  alert("Документ проигнорирован.");
+function ignoreDocument(index, documentId) {
+     // Отправка запроса на сервер для обработки документа
+      fetch(`${SERVER_URL}/process_document`, {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+           body: JSON.stringify({
+              user_id: userProfile.id,
+              document_id: documentId,
+              action: "ignore"
+           }),
+      })
+          .then(response => response.json())
+          .then(data => {
+              if (data.status === 'success') {
+                 alert("Документ проигнорирован.");
+                 updateReceivedDocumentList();
+              } else {
+                alert("Ошибка при игнорировании документа.");
+              }
+          })
+        .catch(error => {
+              console.error('Ошибка при обработке:', error);
+              alert('Произошла ошибка при игнорировании документа.');
+         });
 }
 
 function openTab(evt, tabId) {
@@ -223,8 +305,15 @@ function openTab(evt, tabId) {
 
   // Добавить класс "active" к нажатой кнопке
   evt.currentTarget.classList.add('active');
-}
 
+ if (tabId === 'myDocsTab'){
+     updateDocumentList()
+  }
+ if (tabId === 'receivedDocsTab'){
+        updateReceivedDocumentList()
+  }
+
+}
 // Открыть первую вкладку по умолчанию
 document.addEventListener('DOMContentLoaded', () => {
   initializeUserProfile(); // Инициализируем данные пользователя
