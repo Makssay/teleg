@@ -6,7 +6,7 @@
  const receivedDocuments = [];
 
  // URL сервера
- const SERVER_URL = 'https://c37b-95-24-20-127.ngrok-free.app'; // Замените на URL вашего сервера
+ const SERVER_URL = 'https://23e8-95-24-20-127.ngrok-free.app'; // Замените на URL вашего сервера
 
  // Профиль пользователя
  let userProfile = {
@@ -23,7 +23,7 @@
         const added = await addUser(userProfile.id)
         if (added) {
             console.log('User added:', userProfile.id);
-            getFiles()
+            await getFiles() // получаем файлы после добавления пользователя.
         }
     }
     const userProfileElement = document.getElementById('userProfile');
