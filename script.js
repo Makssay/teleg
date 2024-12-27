@@ -6,7 +6,7 @@
  const receivedDocuments = [];
 
  // URL сервера
- const SERVER_URL = 'https://23e8-95-24-20-127.ngrok-free.app'; // Замените на URL вашего сервера
+ const SERVER_URL = 'https://c37b-95-24-20-127.ngrok-free.app'; // Замените на URL вашего сервера
 
  // Профиль пользователя
  let userProfile = {
@@ -16,22 +16,24 @@
 
  // Инициализация данных пользователя
  async function initializeUserProfile() {
-   const userData = Telegram.WebApp.initDataUnsafe?.user;
-    if (userData) {
-        userProfile.id = userData.id;
-        userProfile.name = userData.first_name;
+  console.log("initializeUserProfile: start");
+  const userData = Telegram.WebApp.initDataUnsafe?.user;
+   if (userData) {
+       userProfile.id = userData.id;
+       userProfile.name = userData.first_name;
         const added = await addUser(userProfile.id)
         if (added) {
-            console.log('User added:', userProfile.id);
-            await getFiles() // получаем файлы после добавления пользователя.
-        }
+             console.log('User added:', userProfile.id);
+             await getFiles() // получаем файлы после добавления пользователя.
+         }
     }
-    const userProfileElement = document.getElementById('userProfile');
-    userProfileElement.innerHTML = `
-        <p><strong>Пользователь:</strong> ${userProfile.name}</p>
-        <p><strong>ID:</strong> ${userProfile.id}</p>
-    `;
- }
+  const userProfileElement = document.getElementById('userProfile');
+  userProfileElement.innerHTML = `
+      <p><strong>Пользователь:</strong> ${userProfile.name}</p>
+      <p><strong>ID:</strong> ${userProfile.id}</p>
+  `;
+   console.log("initializeUserProfile: end");
+}
  async function addUser(userId) {
   const response = await fetch(`${SERVER_URL}/api/add_user`, {
       method: 'POST',
@@ -124,23 +126,29 @@ async function getFiles(){
 }
  // получение списка загруженных файлов
  async function getUploadedFiles(){
-       const response =  await fetch(`${SERVER_URL}/api/get_files/${userProfile.id}`)
-       if (response.ok){
-            const data = await response.json()
-           return data.files;
-       }
-      return null
+  console.log("getUploadedFiles: start")
+ const response =  await fetch(`${SERVER_URL}/api/get_files/${userProfile.id}`)
+  console.log("getUploadedFiles: response", response)
+  if (response.ok){
+       const data = await response.json()
+       console.log("getUploadedFiles: data", data)
+     return data.files;
  }
+ return null
+}
 
 // получение списка полученных файлов
- async function getReceivedFiles(){
-       const response =  await fetch(`${SERVER_URL}/received_documents/${userProfile.id}`)
-       if (response.ok){
-           const data = await response.json();
-           return data.documents;
-       }
-       return null
-   }
+async function getReceivedFiles(){
+  console.log("getReceivedFiles: start")
+  const response =  await fetch(`${SERVER_URL}/received_documents/${userProfile.id}`)
+  console.log("getReceivedFiles: response", response)
+ if (response.ok){
+       const data = await response.json();
+      console.log("getReceivedFiles: data", data)
+       return data.documents;
+ }
+ return null
+}
 
 
  // Обновление списка документов
