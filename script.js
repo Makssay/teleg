@@ -56,42 +56,42 @@ async function uploadDocument() {
               headers,
               body: formData,
         });
-      console.log("uploadDocument: Response status:", response.status);
+        console.log("uploadDocument: Response status:", response.status);
 
         if (!response.ok) {
-           const errorData = await response.json();
-            console.error("uploadDocument: Error response data:", errorData);
-          throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-        }
-          const data = await response.json();
-          console.log("uploadDocument: Success response data:", data);
-          if (data.status === 'success') {
+          const errorData = await response.json();
+           console.error("uploadDocument: Error response data:", errorData);
+           throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+         }
+           const data = await response.json();
+           console.log("uploadDocument: Success response data:", data);
+           if (data.status === 'success') {
               // Обновляем список документов
                statusMessage.textContent = 'Документ успешно загружен!';
                statusMessage.style.color = 'green';
-              await  updateDocumentList()
+              updateDocumentList()
 
-
-         } else {
-               console.error("uploadDocument: Error from server:", data);
-              throw new Error(data.message || 'Ошибка при загрузке документа');
+          } else {
+             console.error("uploadDocument: Error from server:", data);
+            throw new Error(data.message || 'Ошибка при загрузке документа');
           }
       } catch (error) {
           console.error('Ошибка при загрузке:', error);
            statusMessage.textContent = 'Не удалось загрузить документ. Проверьте сервер.';
            statusMessage.style.color = 'red';
-       }
+      }
  }
 
 // Обновление списка документов
-async function updateDocumentList() {
-    console.log("updateDocumentList: Updating document list")
+ function updateDocumentList() {
+      console.log("updateDocumentList: Updating document list")
      const documentList = document.getElementById('documentList');
      documentList.innerHTML = ''; // Очищаем список перед обновлением
-      try {
-          const files = await fetchDocuments()
+
+     fetchDocuments()
+          .then(files => {
           if (files && files.length > 0) {
-            console.log("updateDocumentList: Files received from server:", files);
+           console.log("updateDocumentList: Files received from server:", files);
               files.forEach((doc, index) => {
                 const listItem = document.createElement('div');
                 listItem.className = 'document-item'; // Для стилей, если нужно
@@ -102,13 +102,14 @@ async function updateDocumentList() {
                      <button onclick="sendDocument('${doc.file_name}')">Отправить документ</button>
                 `;
                  documentList.appendChild(listItem);
-               });
-         } else {
-             console.log("updateDocumentList: No files found.");
-         }
-      } catch (error) {
-           console.error("updateDocumentList: Error updating:", error)
-      }
+             });
+          } else {
+               console.log("updateDocumentList: No files found.");
+          }
+       })
+       .catch(error => {
+           console.error("updateDocumentList: Error:", error)
+       })
 }
 
 // получение списка файлов пользователя
@@ -118,8 +119,8 @@ async function fetchDocuments(){
     const response = await fetch(`${SERVER_URL}/get_user_files/${userProfile.id}`);
        console.log("fetchDocuments: Response status:", response.status);
     if (!response.ok) {
-      const errorData = await response.json();
-        console.error("fetchDocuments: Error response data:", errorData);
+        const errorData = await response.json();
+         console.error("fetchDocuments: Error response data:", errorData);
       throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
     }
     const data = await response.json();
@@ -128,16 +129,15 @@ async function fetchDocuments(){
         console.log("fetchDocuments: Returning files:", data.files);
       return data.files
     } else {
-        console.error("fetchDocuments: Error from server:", data);
+         console.error("fetchDocuments: Error from server:", data);
       return [];
     }
 
   } catch (error) {
     console.error("Error fetching user files:", error);
-  }
     return [];
+  }
 }
-
 
 // Открытие документа
 function openDocument(documentUrl) {
@@ -203,52 +203,51 @@ function sendDocument(documentName) {
 }
 
 // Обновление списка полученных документов
-  async function updateReceivedDocumentList() {
+  function updateReceivedDocumentList() {
        console.log("updateReceivedDocumentList: Updating received document list");
       const receivedDocumentList = document.getElementById('receivedDocumentList');
       receivedDocumentList.innerHTML = ''; // Очищаем список перед обновлением
-     try {
-       const received =  await fetchReceivedDocuments()
-       if (received && received.length > 0) {
-          console.log("updateReceivedDocumentList: Documents received from server:", received);
-            received.forEach((doc, index) => {
-                const listItem = document.createElement('div');
-                listItem.className = 'document-item';
-                listItem.innerHTML = `
-                     <p>${doc.file_name}</p>
-                     <button onclick="signDocument(${index}, '${doc.document_id}')">Подписать</button>
-                     <button onclick="ignoreDocument(${index}, '${doc.document_id}')">Игнорировать</button>
-                `;
-                 receivedDocumentList.appendChild(listItem);
-             })
-      } else {
+       fetchReceivedDocuments()
+          .then(received => {
+             if (received && received.length > 0) {
+              console.log("updateReceivedDocumentList: Documents received from server:", received);
+              received.forEach((doc, index) => {
+                  const listItem = document.createElement('div');
+                  listItem.className = 'document-item';
+                  listItem.innerHTML = `
+                      <p>${doc.file_name}</p>
+                      <button onclick="signDocument(${index}, '${doc.document_id}')">Подписать</button>
+                      <button onclick="ignoreDocument(${index}, '${doc.document_id}')">Игнорировать</button>
+                  `;
+                  receivedDocumentList.appendChild(listItem);
+                 })
+          } else {
             console.log("updateReceivedDocumentList: No received documents found.");
-       }
-      } catch (error) {
-           console.error("updateReceivedDocumentList: Error updating:", error);
-      }
-
-
+            }
+      })
+          .catch(error => {
+              console.error("updateReceivedDocumentList: Error:", error);
+           })
   }
 
 //получение списка документов
 async function fetchReceivedDocuments() {
-    console.log("fetchReceivedDocuments: Fetching received documents from server");
+  console.log("fetchReceivedDocuments: Fetching received documents from server");
   try {
       const response = await fetch(`${SERVER_URL}/received_documents/${userProfile.id}`);
-       console.log("fetchReceivedDocuments: Response status:", response.status);
+      console.log("fetchReceivedDocuments: Response status:", response.status);
       if (!response.ok) {
-           const errorData = await response.json();
-            console.error("fetchReceivedDocuments: Error response data:", errorData);
+          const errorData = await response.json();
+           console.error("fetchReceivedDocuments: Error response data:", errorData);
           throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-       console.log("fetchReceivedDocuments: Success response data:", data);
+      console.log("fetchReceivedDocuments: Success response data:", data);
       if (data.status === 'success') {
-           console.log("fetchReceivedDocuments: Returning documents:", data.documents);
+            console.log("fetchReceivedDocuments: Returning documents:", data.documents);
           return data.documents
       } else {
-           console.error("fetchReceivedDocuments: Error from server:", data);
+            console.error("fetchReceivedDocuments: Error from server:", data);
           return [];
       }
   } catch (error) {
@@ -258,8 +257,8 @@ async function fetchReceivedDocuments() {
 }
 
 // Подписать документ
-  async function signDocument(index, documentId) {
-      console.log("signDocument: Processing sign document request.");
+ async function signDocument(index, documentId) {
+       console.log("signDocument: Processing sign document request.");
        // Отправка запроса на сервер для обработки документа
         try {
            const response = await fetch(`${SERVER_URL}/process_document`, {
@@ -272,31 +271,29 @@ async function fetchReceivedDocuments() {
                   document_id: documentId,
                   action: "sign"
                   }),
-           });
+          });
            console.log("signDocument: Response status:", response.status);
-           const data = await response.json();
-            console.log("signDocument: Response data:", data);
+          const data = await response.json();
+         console.log("signDocument: Response data:", data);
            if (data.status === 'success') {
                 alert("Документ подписан и добавлен в мои документы.");
-                await updateReceivedDocumentList();
-                await updateDocumentList()
+                 updateReceivedDocumentList();
+                 updateDocumentList()
             } else {
-                console.error("signDocument: Error from server:", data);
-                 alert("Ошибка при подписании документа.");
+                 console.error("signDocument: Error from server:", data);
+                alert("Ошибка при подписании документа.");
               }
-           } catch (error) {
-             console.error('Ошибка при обработке:', error);
-              alert('Произошла ошибка при подписании документа.');
-           }
-
-
+        }  catch (error) {
+            console.error('Ошибка при обработке:', error);
+            alert('Произошла ошибка при подписании документа.');
+        }
 }
 
 // Игнорировать документ
 function ignoreDocument(index, documentId) {
-     console.log("ignoreDocument: Processing ignore document request.");
+  console.log("ignoreDocument: Processing ignore document request.");
      // Отправка запроса на сервер для обработки документа
-      fetch(`${SERVER_URL}/process_document`, {
+  fetch(`${SERVER_URL}/process_document`, {
           method: 'POST',
           headers: {
               'Content-Type': 'application/json',
@@ -306,7 +303,7 @@ function ignoreDocument(index, documentId) {
               document_id: documentId,
               action: "ignore"
            }),
-      })
+    })
           .then(response => response.json())
           .then(data => {
                console.log("ignoreDocument: Response data:", data);
@@ -316,15 +313,15 @@ function ignoreDocument(index, documentId) {
               } else {
                     console.error("ignoreDocument: Error from server:", data);
                   alert("Ошибка при игнорировании документа.");
-              }
-          })
+             }
+         })
         .catch(error => {
               console.error('Ошибка при обработке:', error);
               alert('Произошла ошибка при игнорировании документа.');
          });
 }
 
-async function openTab(evt, tabId) {
+function openTab(evt, tabId) {
   // Скрыть все вкладки
   const tabs = document.getElementsByClassName('tab-content');
   for (let i = 0; i < tabs.length; i++) {
@@ -343,22 +340,19 @@ async function openTab(evt, tabId) {
   // Добавить класс "active" к нажатой кнопке
   evt.currentTarget.classList.add('active');
 
- if (tabId === 'myDocsTab'){
-     console.log("openTab: Opening 'myDocsTab'");
-     await  updateDocumentList()
+if (tabId === 'myDocsTab'){
+       console.log("openTab: Updating 'myDocsTab'")
+      updateDocumentList()
   }
- if (tabId === 'receivedDocsTab'){
-      console.log("openTab: Opening 'receivedDocsTab'");
-        await updateReceivedDocumentList()
+  if (tabId === 'receivedDocsTab'){
+      console.log("openTab: Updating 'receivedDocsTab'");
+      updateReceivedDocumentList()
   }
-
 }
 // Открыть первую вкладку по умолчанию
- document.addEventListener('DOMContentLoaded', async () => {
-      console.log("DOMContentLoaded: Initializing app");
-      initializeUserProfile();
-      document.querySelector('.tab-button').click();
-       console.log("DOMContentLoaded: Getting user files");
-      await updateDocumentList();
-       console.log("DOMContentLoaded: App initialization completed.");
+document.addEventListener('DOMContentLoaded', () => {
+  initializeUserProfile();
+  document.querySelector('.tab-button').click();
+    console.log("DOMContentLoaded: Getting user files")
+     updateDocumentList()
 });
